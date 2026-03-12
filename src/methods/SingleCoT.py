@@ -1,13 +1,15 @@
 from typing import Any, Dict
+
 from src.methods.Base import BaseReasoningMethod
 from src.registry import METHODS
+
 
 @METHODS.register("single_cot")
 class SingleCoT(BaseReasoningMethod):
     """
     Implements a single step Chain of Thought reasoning method.
     """
-    
+
     def run(self, instance: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
         """
         Runs the Single CoT method.
@@ -52,6 +54,6 @@ class SingleCoT(BaseReasoningMethod):
             "metrics": {
                 "total_tokens": total_tokens,
                 "reasoning_tokens": reasoning_tokens,
-                "answer_tokens": answer_tokens
-            }
+                "answer_tokens": answer_tokens,
+            },
         }

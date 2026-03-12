@@ -1,5 +1,6 @@
 from typing import Any, Dict
 
+
 class Registry:
     def __init__(self, name: str):
         self.name = name
@@ -11,15 +12,20 @@ class Registry:
                 raise ValueError(f"'{name}' is already registered in {self.name}")
             self._registry[name] = obj
             return obj
+
         return decorator
 
     def get(self, name: str) -> Any:
         if name not in self._registry:
-            raise KeyError(f"'{name}' not found in {self.name} registry. Available: {list(self._registry.keys())}")
+            raise KeyError(
+                f"'{name}' not found in {self.name} registry. "
+                f"Available: {list(self._registry.keys())}"
+            )
         return self._registry[name]
 
     def __contains__(self, name: str) -> bool:
         return name in self._registry
+
 
 # Global registries
 MODELS = Registry("models")

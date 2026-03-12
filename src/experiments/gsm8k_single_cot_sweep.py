@@ -22,7 +22,9 @@ class SweepRunResult:
     summary: Dict[str, Any]
 
 
-def _normalize_instances(instances: Iterable[Dict[str, Any]], dataset_name: str, split: str) -> List[Dict[str, Any]]:
+def _normalize_instances(
+    instances: Iterable[Dict[str, Any]], dataset_name: str, split: str
+) -> List[Dict[str, Any]]:
     normalized = []
     for index, instance in enumerate(instances):
         normalized.append(
@@ -50,10 +52,14 @@ def evaluate_single_cot_budget(
     method = SingleCoT(model=model, prompt_template=prompt_template, parser=parser)
     records: List[Dict[str, Any]] = []
 
-    iterator = tqdm(instances, desc=f"budget={max_new_tokens}", leave=False) if progress else instances
+    iterator = (
+        tqdm(instances, desc=f"budget={max_new_tokens}", leave=False) if progress else instances
+    )
     for instance in iterator:
         result = method.run(instance, max_new_tokens=max_new_tokens)
-        result["is_correct"] = answers_match(result.get("extracted_answer"), result.get("ground_truth"))
+        result["is_correct"] = answers_match(
+            result.get("extracted_answer"), result.get("ground_truth")
+        )
         tracker.log_instance(result)
         records.append(result)
 
@@ -64,7 +70,9 @@ def evaluate_single_cot_budget(
     return SweepRunResult(budget=max_new_tokens, raw_path=tracker.raw_filepath, summary=summary)
 
 
-def generate_sweep_plots(summaries: List[Dict[str, Any]], run_id: str, plots_dir: str) -> Dict[str, str]:
+def generate_sweep_plots(
+    summaries: List[Dict[str, Any]], run_id: str, plots_dir: str
+) -> Dict[str, str]:
     os.makedirs(plots_dir, exist_ok=True)
     sns.set_theme(style="whitegrid", context="talk")
     df = pd.DataFrame(summaries).sort_values("budget")
@@ -136,7 +144,9 @@ def run_gsm8k_single_cot_sweep(
         "raw_paths": raw_paths,
     }
     aggregate_tracker.save_summary(aggregate_summary)
-    plot_paths = generate_sweep_plots(run_summaries, aggregate_tracker.run_id, aggregate_tracker.dirs["plots"])
+    plot_paths = generate_sweep_plots(
+        run_summaries, aggregate_tracker.run_id, aggregate_tracker.dirs["plots"]
+    )
     plot_manifest_path = aggregate_tracker.save_plot_manifest(plot_paths)
     aggregate_summary["plot_paths"] = plot_paths
     aggregate_summary["plot_manifest_path"] = plot_manifest_path

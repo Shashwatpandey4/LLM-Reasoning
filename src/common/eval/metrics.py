@@ -1,9 +1,11 @@
 from typing import Any, Dict, List, Optional
 
+
 def normalize_numeric_text(value: Optional[str]) -> str:
     if value is None:
         return ""
     return str(value).strip().replace(",", "")
+
 
 def answers_match(prediction: Optional[str], ground_truth: Optional[str]) -> bool:
     pred_clean = normalize_numeric_text(prediction)
@@ -19,9 +21,10 @@ def answers_match(prediction: Optional[str], ground_truth: Optional[str]) -> boo
     except ValueError:
         return pred_clean == truth_clean
 
+
 def exact_match_accuracy(predictions: List[str], ground_truths: List[str]) -> float:
     """
-    Computes exact match accuracy. 
+    Computes exact match accuracy.
     Assumes inputs are already somewhat clean strings representing numbers.
     """
     if not predictions or not ground_truths:
@@ -33,6 +36,7 @@ def exact_match_accuracy(predictions: List[str], ground_truths: List[str]) -> fl
             correct += 1
 
     return correct / len(predictions)
+
 
 def summarize_budget_run(records: List[Dict[str, Any]]) -> Dict[str, Any]:
     if not records:
@@ -52,8 +56,12 @@ def summarize_budget_run(records: List[Dict[str, Any]]) -> Dict[str, Any]:
     return {
         "num_examples": num_examples,
         "accuracy": exact_match_accuracy(predictions, ground_truths),
-        "parse_success_rate": sum(1 for record in records if record.get("parse_success")) / num_examples,
-        "avg_total_tokens": sum(record["metrics"]["total_tokens"] for record in records) / num_examples,
-        "avg_reasoning_tokens": sum(record["metrics"]["reasoning_tokens"] for record in records) / num_examples,
-        "avg_answer_tokens": sum(record["metrics"]["answer_tokens"] for record in records) / num_examples,
+        "parse_success_rate": sum(1 for record in records if record.get("parse_success"))
+        / num_examples,
+        "avg_total_tokens": sum(record["metrics"]["total_tokens"] for record in records)
+        / num_examples,
+        "avg_reasoning_tokens": sum(record["metrics"]["reasoning_tokens"] for record in records)
+        / num_examples,
+        "avg_answer_tokens": sum(record["metrics"]["answer_tokens"] for record in records)
+        / num_examples,
     }

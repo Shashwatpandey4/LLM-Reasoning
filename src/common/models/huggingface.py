@@ -38,9 +38,7 @@ class HuggingFaceModelWrapper:
     ) -> str:
         """Generates text from a prompt, handling chat templates if needed."""
         # For instruct/chat models, we often need to wrap in messages
-        messages = [
-            {"role": "user", "content": prompt}
-        ]
+        messages = [{"role": "user", "content": prompt}]
 
         # Use simple string pipeline execution
         outputs = self.pipeline(

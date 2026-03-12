@@ -5,10 +5,6 @@ from typing import List
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import src.common.datasets.gsm8k
-import src.common.models.huggingface
-import src.common.parsing.gsm8k
-import src.common.prompts.gsm8k_cot
 from src.experiments.gsm8k_single_cot_sweep import run_gsm8k_single_cot_sweep
 from src.registry import DATASETS, MODELS, PARSERS, PROMPTS
 
@@ -20,7 +16,9 @@ def parse_budgets(raw_value: str) -> List[int]:
 def main():
     parser = argparse.ArgumentParser(description="Run a GSM8K SingleCoT max_new_tokens sweep.")
     parser.add_argument("--budgets", default="8,16,32,64,128,256,512,1000")
-    parser.add_argument("--num_examples", type=int, default=0, help="0 uses the full official split.")
+    parser.add_argument(
+        "--num_examples", type=int, default=0, help="0 uses the full official split."
+    )
     parser.add_argument("--split", default="test")
     parser.add_argument("--base_dir", default="results")
     parser.add_argument("--temperature", type=float, default=0.0)

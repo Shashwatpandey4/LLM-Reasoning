@@ -1,9 +1,13 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from datasets import load_dataset
+
 from src.registry import DATASETS
+
 
 class GSM8KDataset:
     """Wrapper for the GSM8K dataset."""
+
     def __init__(self, split: str = "test"):
         self.split = split
         print(f"Loading GSM8K dataset ({split} split)...")
@@ -18,22 +22,21 @@ class GSM8KDataset:
         """
         processed_data = []
         for item in self.dataset:
-            question = item['question']
-            raw_answer = item['answer']
-            
+            question = item["question"]
+            raw_answer = item["answer"]
+
             # Extract ground truth number
             # GSM8K format: [Reasoning...] #### [Answer]
             if "####" in raw_answer:
                 ground_truth = raw_answer.split("####")[-1].strip()
             else:
                 ground_truth = None
-                
-            processed_data.append({
-                "question": question,
-                "answer": ground_truth,
-                "raw_answer": raw_answer
-            })
+
+            processed_data.append(
+                {"question": question, "answer": ground_truth, "raw_answer": raw_answer}
+            )
         return processed_data
+
 
 @DATASETS.register("gsm8k")
 def load_gsm8k(split: str = "test", **kwargs) -> GSM8KDataset:
