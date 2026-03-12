@@ -234,7 +234,7 @@ Current test coverage includes:
 
 This keeps CI fast and lets contributors work on logic before running expensive model experiments.
 
-## Contribution Guide
+## Contribution Guidelines
 
 When contributing:
 
@@ -244,6 +244,14 @@ When contributing:
 - add or update tests when changing parsing, evaluation, or method contracts
 - avoid coupling new method implementations directly to a single benchmark script
 
+Before opening a pull request:
+
+- make sure your branch is up to date with `main`
+- keep PRs focused on one logical change
+- include a short description of the problem, approach, and validation
+- do not commit generated files from `results/` unless the team explicitly wants a curated artifact
+- if you change public interfaces or result schemas, document that change in the README or PR description
+
 Recommended workflow:
 
 1. sync the environment with `uv sync --dev`
@@ -252,6 +260,14 @@ Recommended workflow:
 4. run `uv run pre-commit run --all-files`
 5. run `uv run pytest -q`
 6. run a small benchmark slice before a larger experiment
+
+PR review checklist:
+
+- code follows the shared dataset/method/model contracts
+- tests cover the new behavior or changed behavior
+- `pre-commit` and `pytest` pass locally
+- documentation is updated when contributor-facing behavior changes
+- changes do not silently break existing experiment outputs or evaluation paths
 
 ## PR Workflow
 
