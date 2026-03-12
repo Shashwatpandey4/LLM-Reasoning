@@ -244,14 +244,6 @@ When contributing:
 - add or update tests when changing parsing, evaluation, or method contracts
 - avoid coupling new method implementations directly to a single benchmark script
 
-Before opening a pull request:
-
-- make sure your branch is up to date with `main`
-- keep PRs focused on one logical change
-- include a short description of the problem, approach, and validation
-- do not commit generated files from `results/` unless the team explicitly wants a curated artifact
-- if you change public interfaces or result schemas, document that change in the README or PR description
-
 Recommended workflow:
 
 1. sync the environment with `uv sync --dev`
