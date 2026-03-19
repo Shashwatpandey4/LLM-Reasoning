@@ -1,0 +1,24 @@
+# EAR comparison experiment: k=3, reasoning-level critique, Elo selector, 1 round
+# Pair with compare_sc.yaml for a fair comparison (same model, same k, same dataset slice)
+
+experiment:
+  name: compare_ear_gemma-3-1b-it_k3
+  base_dir: results
+
+dataset:
+  name: gsm8k
+  split: test
+  num_examples: 20
+
+model:
+  name: qwen3-0.6b
+  temperature: 0.7
+
+method:
+  name: ear
+  k: 3
+  rounds: 1
+  critique_strategy: reasoning_level
+  equilibrium_selector: elo
+  allow_revision: false
+  max_new_tokens: 256

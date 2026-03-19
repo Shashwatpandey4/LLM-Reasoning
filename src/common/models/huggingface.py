@@ -59,3 +59,8 @@ class HuggingFaceModelWrapper:
 @MODELS.register("gemma-3-1b-it")
 def load_gemma_3_1b_it(**kwargs) -> HuggingFaceModelWrapper:
     return HuggingFaceModelWrapper("google/gemma-3-1b-it", **kwargs)
+
+
+@MODELS.register("qwen3-0.6b")
+def load_qwen3_0_6b(**kwargs) -> HuggingFaceModelWrapper:
+    return HuggingFaceModelWrapper("Qwen/Qwen3-0.6B", **kwargs)

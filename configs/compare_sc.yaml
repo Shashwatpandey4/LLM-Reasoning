@@ -1,0 +1,20 @@
+# Self-Consistency comparison experiment: k=3
+# Pair with compare_ear.yaml for a fair comparison (same model, same k, same dataset slice)
+
+experiment:
+  name: compare_sc_gemma-3-1b-it_k3
+  base_dir: results
+
+dataset:
+  name: gsm8k
+  split: test
+  num_examples: 20
+
+model:
+  name: qwen3-0.6b
+  temperature: 0.7
+
+method:
+  name: self_consistency
+  k: 3
+  max_new_tokens: 256
