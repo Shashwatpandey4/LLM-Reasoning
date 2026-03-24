@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 
 import torch
@@ -5,22 +6,41 @@ from transformers import AutoTokenizer, pipeline
 
 from src.registry import MODELS
 
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
+
 
 class HuggingFaceModelWrapper:
-    """Wrapper for Hugging Face models using the transformers pipeline."""
+    """Wrapper for Hugging Face models using the transformers pipeline.
 
-    def __init__(self, model_name: str, max_new_tokens: int = 512, temperature: float = 0.7):
+    Args:
+        model_name: HuggingFace model identifier.
+        max_new_tokens: Default token budget per generation call.
+        temperature: Default sampling temperature.
+        strip_thinking: If True, remove <think>...</think> blocks from outputs
+            before returning. Required for DeepSeek-R1 distill models whose
+            outputs contain extended chain-of-thought wrapped in these tags.
+        system_prompt: Optional system prompt prepended to every message.
+            Used to enable thinking mode on Qwen3 models.
+    """
+
+    def __init__(
+        self,
+        model_name: str,
+        max_new_tokens: int = 512,
+        temperature: float = 0.7,
+        strip_thinking: bool = False,
+        system_prompt: Optional[str] = None,
+    ):
         self.model_name = model_name
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
+        self.strip_thinking = strip_thinking
+        self.system_prompt = system_prompt
 
-        # Load tokenizer and model
         print(f"Loading {model_name}...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-        # Determine device
         device = "cuda" if torch.cuda.is_available() else "cpu"
-
         self.pipeline = pipeline(
             "text-generation",
             model=model_name,
@@ -28,7 +48,7 @@ class HuggingFaceModelWrapper:
             device_map="auto" if device == "cuda" else None,
             torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
         )
-        print(f"Model {model_name} loaded successfully on {device}.")
+        print(f"Model {model_name} loaded on {device}.")
 
     def generate(
         self,
@@ -36,11 +56,12 @@ class HuggingFaceModelWrapper:
         max_new_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
     ) -> str:
-        """Generates text from a prompt, handling chat templates if needed."""
-        # For instruct/chat models, we often need to wrap in messages
-        messages = [{"role": "user", "content": prompt}]
+        """Generate text from a prompt using the chat template."""
+        messages = []
+        if self.system_prompt:
+            messages.append({"role": "system", "content": self.system_prompt})
+        messages.append({"role": "user", "content": prompt})
 
-        # Use simple string pipeline execution
         outputs = self.pipeline(
             messages,
             max_new_tokens=max_new_tokens or self.max_new_tokens,
@@ -49,11 +70,19 @@ class HuggingFaceModelWrapper:
             return_full_text=False,
         )
 
-        return outputs[0]["generated_text"]
+        text = outputs[0]["generated_text"]
+        if self.strip_thinking:
+            text = _THINK_RE.sub("", text).strip()
+        return text
 
     def count_tokens(self, text: str) -> int:
-        """Counts the number of tokens in the given text using the model's tokenizer."""
+        """Count tokens using the model's own tokenizer."""
         return len(self.tokenizer.encode(text, add_special_tokens=False))
+
+
+# ---------------------------------------------------------------------------
+# Class 1 — Compact IT (existing)
+# ---------------------------------------------------------------------------
 
 
 @MODELS.register("gemma-3-1b-it")
@@ -64,3 +93,64 @@ def load_gemma_3_1b_it(**kwargs) -> HuggingFaceModelWrapper:
 @MODELS.register("qwen3-0.6b")
 def load_qwen3_0_6b(**kwargs) -> HuggingFaceModelWrapper:
     return HuggingFaceModelWrapper("Qwen/Qwen3-0.6B", **kwargs)
+
+
+@MODELS.register("phi-3.5-mini")
+def load_phi_3_5_mini(**kwargs) -> HuggingFaceModelWrapper:
+    """Phi-3.5-mini-Instruct (3.8B) — Microsoft. Class 1 representative."""
+    return HuggingFaceModelWrapper("microsoft/Phi-3.5-mini-instruct", **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Class 2 — Mid-size IT
+# ---------------------------------------------------------------------------
+
+
+@MODELS.register("llama-3.1-8b")
+def load_llama_3_1_8b(**kwargs) -> HuggingFaceModelWrapper:
+    """Llama-3.1-8B-Instruct (8B) — Meta. Class 2 representative."""
+    return HuggingFaceModelWrapper("meta-llama/Llama-3.1-8B-Instruct", **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Class 3 — Large IT
+# ---------------------------------------------------------------------------
+
+
+@MODELS.register("gemma-3-27b-it")
+def load_gemma_3_27b_it(**kwargs) -> HuggingFaceModelWrapper:
+    """Gemma-3-27B-IT (27B) — Google. Class 3 representative."""
+    return HuggingFaceModelWrapper("google/gemma-3-27b-it", **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Class 4 — Thinking / RL-Reasoning
+# ---------------------------------------------------------------------------
+
+
+@MODELS.register("deepseek-r1-distill-7b")
+def load_deepseek_r1_distill_7b(**kwargs) -> HuggingFaceModelWrapper:
+    """DeepSeek-R1-Distill-Qwen-7B (7B) — DeepSeek. Class 4 representative.
+
+    Outputs extended chain-of-thought inside <think>...</think> tags before
+    the final answer. strip_thinking=True removes these blocks so downstream
+    parsers see only the answer text.
+    """
+    return HuggingFaceModelWrapper(
+        "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+        strip_thinking=True,
+        **kwargs,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Class 5 — MoE
+# ---------------------------------------------------------------------------
+
+
+@MODELS.register("mixtral-8x7b")
+def load_mixtral_8x7b(**kwargs) -> HuggingFaceModelWrapper:
+    """Mixtral-8x7B-Instruct-v0.1 (~13B active / 47B total) — Mistral.
+    Class 5 representative. Requires device_map='auto' across multiple GPUs.
+    """
+    return HuggingFaceModelWrapper("mistralai/Mixtral-8x7B-Instruct-v0.1", **kwargs)

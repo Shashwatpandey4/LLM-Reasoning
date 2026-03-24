@@ -123,7 +123,9 @@ def test_answer_level_produces_k_critiques():
 def test_reasoning_level_produces_k_critiques():
     from src.methods.ear.critique.reasoning_level import ReasoningLevelCritique
 
-    candidates = [{"id": i, "extracted_answer": str(i), "reasoning_text": f"step {i}"} for i in range(3)]
+    candidates = [
+        {"id": i, "extracted_answer": str(i), "reasoning_text": f"step {i}"} for i in range(3)
+    ]
     strategy = ReasoningLevelCritique(critique_prompt=FakePrompt())
     results = strategy.run("What is x?", candidates, FakeGenerationModel())
 
@@ -135,7 +137,9 @@ def test_panel_produces_k_times_k_minus_1_critiques():
     from src.methods.ear.critique.panel import PanelCritique
 
     k = 3
-    candidates = [{"id": i, "extracted_answer": str(i), "reasoning_text": f"step {i}"} for i in range(k)]
+    candidates = [
+        {"id": i, "extracted_answer": str(i), "reasoning_text": f"step {i}"} for i in range(k)
+    ]
     strategy = PanelCritique(critique_prompt=FakePrompt())
     results = strategy.run("What is x?", candidates, FakeGenerationModel())
 
@@ -159,11 +163,34 @@ def test_survival_winner_is_least_critiqued():
     sel.initialize([0, 1, 2])
 
     # Candidate 0 gets 2 successful critiques, 1 gets 1, 2 gets 0
-    sel.update([
-        JudgeResult(critiquer_id=None, target_id=0, is_successful=True, confidence=0.9, judge_text="", tokens=1),
-        JudgeResult(critiquer_id=None, target_id=0, is_successful=True, confidence=0.9, judge_text="", tokens=1),
-        JudgeResult(critiquer_id=None, target_id=1, is_successful=True, confidence=0.9, judge_text="", tokens=1),
-    ])
+    sel.update(
+        [
+            JudgeResult(
+                critiquer_id=None,
+                target_id=0,
+                is_successful=True,
+                confidence=0.9,
+                judge_text="",
+                tokens=1,
+            ),
+            JudgeResult(
+                critiquer_id=None,
+                target_id=0,
+                is_successful=True,
+                confidence=0.9,
+                judge_text="",
+                tokens=1,
+            ),
+            JudgeResult(
+                critiquer_id=None,
+                target_id=1,
+                is_successful=True,
+                confidence=0.9,
+                judge_text="",
+                tokens=1,
+            ),
+        ]
+    )
 
     candidates = [{"id": i} for i in range(3)]
     assert sel.select_winner_id(candidates) == 2
@@ -178,9 +205,18 @@ def test_elo_winner_has_highest_rating():
     sel.initialize([0, 1])
 
     # Candidate 0 successfully critiques candidate 1 (panel-style: critiquer_id=0)
-    sel.update([
-        JudgeResult(critiquer_id=0, target_id=1, is_successful=True, confidence=0.9, judge_text="", tokens=1),
-    ])
+    sel.update(
+        [
+            JudgeResult(
+                critiquer_id=0,
+                target_id=1,
+                is_successful=True,
+                confidence=0.9,
+                judge_text="",
+                tokens=1,
+            ),
+        ]
+    )
 
     candidates = [{"id": 0}, {"id": 1}]
     assert sel.select_winner_id(candidates) == 0
@@ -199,25 +235,43 @@ def test_elo_external_critic_only_penalizes_target():
     initial_scores = sel.get_scores().copy()
 
     # External critic (critiquer_id=None) successfully critiques candidate 0
-    sel.update([
-        JudgeResult(critiquer_id=None, target_id=0, is_successful=True, confidence=0.9, judge_text="", tokens=1),
-    ])
+    sel.update(
+        [
+            JudgeResult(
+                critiquer_id=None,
+                target_id=0,
+                is_successful=True,
+                confidence=0.9,
+                judge_text="",
+                tokens=1,
+            ),
+        ]
+    )
 
     scores_after = sel.get_scores()
-    assert scores_after[0] < initial_scores[0]   # target penalized
+    assert scores_after[0] < initial_scores[0]  # target penalized
     assert scores_after[1] == initial_scores[1]  # untouched candidate unchanged
 
 
 def test_nash_converges_when_no_revisions():
     from src.methods.ear.equilibrium.nash import NashSelector
-    from src.methods.ear.types import JudgeResult, RevisionResult
+    from src.methods.ear.types import JudgeResult
 
     sel = NashSelector()
     sel.initialize([0, 1, 2])
 
-    sel.update([
-        JudgeResult(critiquer_id=None, target_id=0, is_successful=True, confidence=0.9, judge_text="", tokens=1),
-    ])
+    sel.update(
+        [
+            JudgeResult(
+                critiquer_id=None,
+                target_id=0,
+                is_successful=True,
+                confidence=0.9,
+                judge_text="",
+                tokens=1,
+            ),
+        ]
+    )
 
     # No revisions → converged
     sel.notify_revisions([])
@@ -226,19 +280,26 @@ def test_nash_converges_when_no_revisions():
 
 def test_nash_not_converged_when_answer_changed():
     from src.methods.ear.equilibrium.nash import NashSelector
-    from src.methods.ear.types import JudgeResult, RevisionResult
+    from src.methods.ear.types import RevisionResult
 
     sel = NashSelector()
     sel.initialize([0, 1])
 
     sel.update([])
-    sel.notify_revisions([
-        RevisionResult(
-            candidate_id=0, old_answer="42", new_answer="37",
-            revised_raw="", reasoning_text="", answer_text="",
-            tokens=10, answer_changed=True,
-        )
-    ])
+    sel.notify_revisions(
+        [
+            RevisionResult(
+                candidate_id=0,
+                old_answer="42",
+                new_answer="37",
+                revised_raw="",
+                reasoning_text="",
+                answer_text="",
+                tokens=10,
+                answer_changed=True,
+            )
+        ]
+    )
     assert sel.is_converged() is False
 
 
@@ -247,13 +308,20 @@ def test_nash_not_converged_when_answer_changed():
 # ---------------------------------------------------------------------------
 
 
-def _make_ear(model, judge_model, critique_strategy_name, selector_name, k=2, rounds=1, allow_revision=True):
+def _make_ear(
+    model,
+    judge_model,
+    critique_strategy_name,
+    selector_name,
+    k=2,
+    rounds=1,
+    allow_revision=True,
+):
+    import src.common.prompts.ear_prompts  # noqa: F401
     from src.common.parsing.ear_judge import JudgeParser
     from src.methods.EAR import EAR
     from src.methods.ear.judge import Judge
     from src.registry import CRITIQUE_STRATEGIES, EQUILIBRIUM_SELECTORS
-
-    import src.common.prompts.ear_prompts  # noqa: F401
 
     critique_strategy = CRITIQUE_STRATEGIES.get(critique_strategy_name)(
         critique_prompt=FakePrompt()
@@ -363,10 +431,9 @@ def test_nash_converges_early_with_no_revisions():
 
 
 def test_ear_sweep_writes_results(tmp_path):
-    from src.experiments.gsm8k_ear_sweep import EarRunConfig, run_gsm8k_ear_sweep
-    from src.common.parsing.ear_judge import JudgeParser
-
     import src.common.prompts.ear_prompts  # noqa: F401
+    from src.common.parsing.ear_judge import JudgeParser
+    from src.experiments.gsm8k_ear_sweep import EarRunConfig, run_gsm8k_ear_sweep
 
     instances = [
         {"id": "ex-1", "question": "1+1", "answer": "2"},
@@ -377,13 +444,26 @@ def test_ear_sweep_writes_results(tmp_path):
         return FakeGenerationModel("Reasoning. The answer is 42")
 
     ear_configs = [
-        EarRunConfig(k=2, rounds=1, critique_strategy="answer_level",
-                     equilibrium_selector="elo", allow_revision=False, max_new_tokens=64),
-        EarRunConfig(k=2, rounds=1, critique_strategy="answer_level",
-                     equilibrium_selector="survival", allow_revision=False, max_new_tokens=64),
+        EarRunConfig(
+            k=2,
+            rounds=1,
+            critique_strategy="answer_level",
+            equilibrium_selector="elo",
+            allow_revision=False,
+            max_new_tokens=64,
+        ),
+        EarRunConfig(
+            k=2,
+            rounds=1,
+            critique_strategy="answer_level",
+            equilibrium_selector="survival",
+            allow_revision=False,
+            max_new_tokens=64,
+        ),
     ]
 
     from src.registry import PROMPTS
+
     critique_prompts = {"answer_level": PROMPTS.get("ear_answer_level_critique")()}
     judge_prompt = PROMPTS.get("ear_judge")()
     revision_prompt = PROMPTS.get("ear_revision")()

@@ -3,8 +3,9 @@
 Usage:
     uv run python benchmarks/run_experiment.py --config configs/gsm8k_self_consistency.yaml
 
-To run a different model, either edit the config file or override via CLI:
-    uv run python benchmarks/run_experiment.py --config configs/gsm8k_self_consistency.yaml --model gemma-3-4b-it
+To run a different model, override via CLI:
+    uv run python benchmarks/run_experiment.py \
+        --config configs/gsm8k_self_consistency.yaml --model gemma-3-4b-it
 
 Any list-valued parameter under `method:` triggers a sweep over those values.
 """
@@ -22,7 +23,6 @@ import src.common.datasets.gsm8k  # noqa: F401
 import src.common.models.huggingface  # noqa: F401
 import src.common.parsing.gsm8k  # noqa: F401
 import src.common.prompts.gsm8k_cot  # noqa: F401
-
 from src.registry import DATASETS, MODELS, PARSERS, PROMPTS
 
 
@@ -94,8 +94,6 @@ def _run_self_consistency(config: dict, instances: list, prompt_template, parser
 
 
 def _run_ear(config: dict, instances: list, prompt_template, parser, model_name: str):
-    from src.experiments.gsm8k_ear_sweep import build_ear_configs, run_gsm8k_ear_sweep
-
     # Side-effect imports: register EAR components into global registries
     import src.common.parsing.ear_judge  # noqa: F401
     import src.common.prompts.ear_prompts  # noqa: F401
@@ -105,6 +103,7 @@ def _run_ear(config: dict, instances: list, prompt_template, parser, model_name:
     import src.methods.ear.equilibrium.elo  # noqa: F401
     import src.methods.ear.equilibrium.nash  # noqa: F401
     import src.methods.ear.equilibrium.survival  # noqa: F401
+    from src.experiments.gsm8k_ear_sweep import build_ear_configs, run_gsm8k_ear_sweep
 
     method_cfg = config["method"]
     temperature = config["model"].get("temperature", 0.7)
@@ -165,7 +164,9 @@ _DISPATCHERS = {
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run a benchmarking experiment from a YAML config.")
+    parser = argparse.ArgumentParser(
+        description="Run a benchmarking experiment from a YAML config."
+    )
     parser.add_argument("--config", required=True, help="Path to experiment YAML config.")
     parser.add_argument(
         "--model",
@@ -195,9 +196,7 @@ def main():
     method_name = config["method"]["name"]
 
     if method_name not in _DISPATCHERS:
-        raise ValueError(
-            f"Unknown method '{method_name}'. Available: {list(_DISPATCHERS.keys())}"
-        )
+        raise ValueError(f"Unknown method '{method_name}'. Available: {list(_DISPATCHERS.keys())}")
 
     # Load data
     dataset = DATASETS.get(dataset_name)(split=split)
@@ -213,7 +212,9 @@ def main():
     print(f"  dataset    : {dataset_name} / {split} ({len(instances)} examples)")
     print(f"  method     : {method_name}")
 
-    result = _DISPATCHERS[method_name](config, instances, prompt_template, answer_parser, model_name)
+    result = _DISPATCHERS[method_name](
+        config, instances, prompt_template, answer_parser, model_name
+    )
 
     print("\nExperiment complete.")
     print(f"Plot manifest: {result.get('plot_manifest_path')}")

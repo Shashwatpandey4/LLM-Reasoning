@@ -4,7 +4,6 @@ from pathlib import Path
 from src.common.eval.voting import majority_vote, vote_distribution
 from src.experiments.gsm8k_self_consistency_sweep import run_gsm8k_self_consistency_sweep
 
-
 # ---------------------------------------------------------------------------
 # Shared fakes
 # ---------------------------------------------------------------------------

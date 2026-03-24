@@ -15,7 +15,6 @@ import os
 import sys
 
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -108,7 +107,9 @@ def save_comparison_plot(stats_list: list, output_dir: str):
                 fontweight="bold",
             )
 
-    fig.suptitle("Method Comparison: EAR vs Self-Consistency (GSM8K)", fontsize=16, fontweight="bold")
+    fig.suptitle(
+        "Method Comparison: EAR vs Self-Consistency (GSM8K)", fontsize=16, fontweight="bold"
+    )
     plt.tight_layout()
     out_path = os.path.join(output_dir, "method_comparison.png")
     plt.savefig(out_path, dpi=300, bbox_inches="tight")

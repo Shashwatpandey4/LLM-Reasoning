@@ -33,3 +33,7 @@ dist/
 results/raw/
 results/summaries/
 results/plots/
+
+# Not tracked in version control
+memory/
+paper/

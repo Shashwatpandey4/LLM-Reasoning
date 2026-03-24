@@ -8,7 +8,6 @@ per-config summary JSON for each, plus an aggregate JSON for the full sweep.
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import dataclass
 from itertools import product
 from typing import Any, Callable, Dict, Iterable, List
@@ -26,7 +25,7 @@ from src.registry import CRITIQUE_STRATEGIES, EQUILIBRIUM_SELECTORS
 class EarRunConfig:
     k: int
     rounds: int
-    critique_strategy: str    # registry key
+    critique_strategy: str  # registry key
     equilibrium_selector: str  # registry key
     allow_revision: bool
     max_new_tokens: int
@@ -35,10 +34,7 @@ class EarRunConfig:
     def label(self) -> str:
         rev = "rev" if self.allow_revision else "norev"
         return (
-            f"k{self.k}_r{self.rounds}"
-            f"_{self.critique_strategy}"
-            f"_{self.equilibrium_selector}"
-            f"_{rev}"
+            f"k{self.k}_r{self.rounds}_{self.critique_strategy}_{self.equilibrium_selector}_{rev}"
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -123,8 +119,14 @@ def evaluate_ear_config(
     progress: bool = True,
 ) -> Dict[str, Any]:
     method = _build_ear_method(
-        cfg, model, prompt_template, parser,
-        critique_prompts, judge_prompt, judge_parser, revision_prompt,
+        cfg,
+        model,
+        prompt_template,
+        parser,
+        critique_prompts,
+        judge_prompt,
+        judge_parser,
+        revision_prompt,
     )
     records: List[Dict[str, Any]] = []
 
