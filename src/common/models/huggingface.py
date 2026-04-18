@@ -154,3 +154,28 @@ def load_mixtral_8x7b(**kwargs) -> HuggingFaceModelWrapper:
     Class 5 representative. Requires device_map='auto' across multiple GPUs.
     """
     return HuggingFaceModelWrapper("mistralai/Mixtral-8x7B-Instruct-v0.1", **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Qwen3 scale sweep (0.6B → 1.7B → 4B → 8B → 14B)
+# ---------------------------------------------------------------------------
+
+
+@MODELS.register("qwen3-1.7b")
+def load_qwen3_1_7b(**kwargs) -> HuggingFaceModelWrapper:
+    return HuggingFaceModelWrapper("Qwen/Qwen3-1.7B", **kwargs)
+
+
+@MODELS.register("qwen3-4b")
+def load_qwen3_4b(**kwargs) -> HuggingFaceModelWrapper:
+    return HuggingFaceModelWrapper("Qwen/Qwen3-4B", **kwargs)
+
+
+@MODELS.register("qwen3-8b")
+def load_qwen3_8b(**kwargs) -> HuggingFaceModelWrapper:
+    return HuggingFaceModelWrapper("Qwen/Qwen3-8B", **kwargs)
+
+
+@MODELS.register("qwen3-14b")
+def load_qwen3_14b(**kwargs) -> HuggingFaceModelWrapper:
+    return HuggingFaceModelWrapper("Qwen/Qwen3-14B", **kwargs)
