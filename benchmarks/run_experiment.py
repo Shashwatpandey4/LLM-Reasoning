@@ -185,7 +185,13 @@ def main():
 
     # CLI overrides
     if args.model is not None:
+        original_model = config["model"]["name"]
         config["model"]["name"] = args.model
+        exp_name = config["experiment"]["name"]
+        if original_model in exp_name:
+            config["experiment"]["name"] = exp_name.replace(original_model, args.model)
+        else:
+            config["experiment"]["name"] = f"{exp_name}_{args.model}"
     if args.num_examples is not None:
         config["dataset"]["num_examples"] = args.num_examples
 
