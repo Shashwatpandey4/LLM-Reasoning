@@ -21,6 +21,7 @@ MODEL_SIZES = {
     "qwen3-1.7b": 1.7,
     "qwen3-4b": 4.0,
     "qwen3-8b": 8.0,
+    "qwen3-14b": 14.0,
 }
 
 KNOWN_MODELS = list(MODEL_SIZES.keys())

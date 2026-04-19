@@ -1,0 +1,19 @@
+# GSM8K SingleCoT budget sweep — fast variant (30 examples, uniform across models)
+# Run with: uv run python benchmarks/run_experiment.py --config configs/gsm8k_single_cot_fast.yaml --model <model>
+
+experiment:
+  name: gsm8k_qwen3-0.6b_single-cot
+  base_dir: results
+
+dataset:
+  name: gsm8k
+  split: test
+  num_examples: 30
+
+model:
+  name: qwen3-0.6b
+  temperature: 0.0
+
+method:
+  name: single_cot
+  max_new_tokens: [512, 1000]  # two points sufficient for compute-accuracy curve

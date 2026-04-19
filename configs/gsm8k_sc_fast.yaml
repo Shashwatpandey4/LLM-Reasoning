@@ -1,0 +1,20 @@
+# GSM8K Self-Consistency k sweep — fast variant (30 examples, uniform across models)
+# Run with: uv run python benchmarks/run_experiment.py --config configs/gsm8k_sc_fast.yaml --model <model>
+
+experiment:
+  name: gsm8k_qwen3-0.6b_self-consistency
+  base_dir: results
+
+dataset:
+  name: gsm8k
+  split: test
+  num_examples: 30
+
+model:
+  name: qwen3-0.6b
+  temperature: 0.7
+
+method:
+  name: self_consistency
+  k: [3, 5]
+  max_new_tokens: 1000

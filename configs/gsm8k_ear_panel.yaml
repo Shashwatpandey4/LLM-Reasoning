@@ -1,0 +1,32 @@
+# GSM8K EAR — panel strategy only (300 examples)
+# Panel generates k×(k-1) cross-critiques per round — expensive.
+# Run this after confirming answer_level/reasoning_level results look sane.
+#
+# Total: 1 strategy × 3 selectors = 3 runs per model.
+# Run with: uv run python benchmarks/run_experiment.py --config configs/gsm8k_ear_panel.yaml --model <model>
+
+experiment:
+  name: gsm8k_qwen3-0.6b_ear-panel
+  base_dir: results
+
+dataset:
+  name: gsm8k
+  split: test
+  num_examples: 30
+
+model:
+  name: qwen3-0.6b
+  temperature: 0.7
+
+method:
+  name: ear
+  k: 3
+  rounds: 3
+  critique_strategy:
+    - panel
+  equilibrium_selector:
+    - elo
+    - survival
+    - nash
+  allow_revision: false
+  max_new_tokens: 1000

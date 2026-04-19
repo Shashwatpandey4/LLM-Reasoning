@@ -37,3 +37,8 @@ results/plots/
 # Not tracked in version control
 memory/
 paper/
+
+# Keys and secrets
+*.pem
+*.key
+*.p12

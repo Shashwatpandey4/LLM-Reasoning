@@ -9,6 +9,20 @@ from src.registry import MODELS
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 
+def _strip_thinking(text: str) -> str:
+    """Remove <think>...</think> blocks from model output.
+
+    If the block is incomplete (no closing tag), the model ran out of tokens
+    mid-thought and produced no usable answer — return empty string so the
+    caller records a parse failure rather than extracting garbage.
+    """
+    if "<think>" not in text:
+        return text
+    if "</think>" not in text:
+        return ""
+    return _THINK_RE.sub("", text).strip()
+
+
 class HuggingFaceModelWrapper:
     """Wrapper for Hugging Face models using the transformers pipeline.
 
@@ -72,7 +86,7 @@ class HuggingFaceModelWrapper:
 
         text = outputs[0]["generated_text"]
         if self.strip_thinking:
-            text = _THINK_RE.sub("", text).strip()
+            text = _strip_thinking(text)
         return text
 
     def count_tokens(self, text: str) -> int:
@@ -92,7 +106,27 @@ def load_gemma_3_1b_it(**kwargs) -> HuggingFaceModelWrapper:
 
 @MODELS.register("qwen3-0.6b")
 def load_qwen3_0_6b(**kwargs) -> HuggingFaceModelWrapper:
-    return HuggingFaceModelWrapper("Qwen/Qwen3-0.6B", **kwargs)
+    return HuggingFaceModelWrapper("Qwen/Qwen3-0.6B", system_prompt="/no_think", **kwargs)
+
+
+@MODELS.register("qwen3-1.7b")
+def load_qwen3_1_7b(**kwargs) -> HuggingFaceModelWrapper:
+    return HuggingFaceModelWrapper("Qwen/Qwen3-1.7B", system_prompt="/no_think", **kwargs)
+
+
+@MODELS.register("qwen3-4b")
+def load_qwen3_4b(**kwargs) -> HuggingFaceModelWrapper:
+    return HuggingFaceModelWrapper("Qwen/Qwen3-4B", system_prompt="/no_think", **kwargs)
+
+
+@MODELS.register("qwen3-8b")
+def load_qwen3_8b(**kwargs) -> HuggingFaceModelWrapper:
+    return HuggingFaceModelWrapper("Qwen/Qwen3-8B", system_prompt="/no_think", **kwargs)
+
+
+@MODELS.register("qwen3-14b")
+def load_qwen3_14b(**kwargs) -> HuggingFaceModelWrapper:
+    return HuggingFaceModelWrapper("Qwen/Qwen3-14B", system_prompt="/no_think", **kwargs)
 
 
 @MODELS.register("phi-3.5-mini")
@@ -156,26 +190,3 @@ def load_mixtral_8x7b(**kwargs) -> HuggingFaceModelWrapper:
     return HuggingFaceModelWrapper("mistralai/Mixtral-8x7B-Instruct-v0.1", **kwargs)
 
 
-# ---------------------------------------------------------------------------
-# Qwen3 scale sweep (0.6B → 1.7B → 4B → 8B → 14B)
-# ---------------------------------------------------------------------------
-
-
-@MODELS.register("qwen3-1.7b")
-def load_qwen3_1_7b(**kwargs) -> HuggingFaceModelWrapper:
-    return HuggingFaceModelWrapper("Qwen/Qwen3-1.7B", **kwargs)
-
-
-@MODELS.register("qwen3-4b")
-def load_qwen3_4b(**kwargs) -> HuggingFaceModelWrapper:
-    return HuggingFaceModelWrapper("Qwen/Qwen3-4B", **kwargs)
-
-
-@MODELS.register("qwen3-8b")
-def load_qwen3_8b(**kwargs) -> HuggingFaceModelWrapper:
-    return HuggingFaceModelWrapper("Qwen/Qwen3-8B", **kwargs)
-
-
-@MODELS.register("qwen3-14b")
-def load_qwen3_14b(**kwargs) -> HuggingFaceModelWrapper:
-    return HuggingFaceModelWrapper("Qwen/Qwen3-14B", **kwargs)

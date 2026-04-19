@@ -1,0 +1,33 @@
+# GSM8K EAR — fast ablation grid (30 examples, uniform across models)
+# Sweeps answer_level and reasoning_level strategies x all 3 selectors.
+# Panel is excluded here — run gsm8k_ear_panel.yaml separately if budget allows.
+#
+# Total: 2 strategies × 3 selectors = 6 runs per model.
+# Run with: uv run python benchmarks/run_experiment.py --config configs/gsm8k_ear_fast.yaml --model <model>
+
+experiment:
+  name: gsm8k_qwen3-0.6b_ear
+  base_dir: results
+
+dataset:
+  name: gsm8k
+  split: test
+  num_examples: 30
+
+model:
+  name: qwen3-0.6b
+  temperature: 0.7
+
+method:
+  name: ear
+  k: 3
+  rounds: 3
+  critique_strategy:
+    - answer_level
+    - reasoning_level
+  equilibrium_selector:
+    - elo
+    - survival
+    - nash
+  allow_revision: false
+  max_new_tokens: 1000

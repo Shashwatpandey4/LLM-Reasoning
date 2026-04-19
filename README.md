@@ -16,7 +16,29 @@ Implemented:
 - Config-driven unified experiment runner (`benchmarks/run_experiment.py`)
 - Result logging to `results/raw` and `results/summaries`, plot generation to `results/plots`
 - Side-by-side method comparison script (`benchmarks/compare_methods.py`)
+- Analysis scripts: scale curve, Pareto frontier, ablation heatmap, efficiency table
+- Sanity-check script with per-model accuracy floor validation (`benchmarks/sanity_check.py`)
 - 31 deterministic tests covering all components
+
+### Experiment Results (GSM8K, qwen3-0.6B, 100 examples)
+
+All runs use Qwen3-0.6B in non-thinking mode (`/no_think`) on an NVIDIA RTX A6000.
+
+**SingleCoT** (greedy, budget sweep):
+
+| Budget (tokens) | Accuracy | Avg tokens used | Parse rate |
+|----------------|----------|-----------------|------------|
+| 512 | 57.0% | 408 | 100% |
+| 1000 | 69.7% | 523 | 100% |
+
+**Self-Consistency** (temperature=0.7, budget=512 per candidate):
+
+| k | Accuracy | Avg total tokens |
+|---|----------|-----------------|
+| 3 | 55.0% | 1248 |
+| 5 | ~59% (partial) | — |
+
+EAR experiments are scheduled to run next across all four Qwen3 model sizes (0.6B, 1.7B, 4B, 8B).
 
 Planned next:
 
@@ -339,3 +361,52 @@ The CI workflow runs on each pull request and on pushes to `main`:
 - calibration metrics (ECE, confident error rate) are not yet computed
 - large-scale model size sweeps (4b → 32b) have not been run yet
 - the real model experiment path is separate from deterministic tests, so passing tests does not guarantee model availability on a new machine
+
+## TODO
+
+### Scope
+
+Central claim: *EAR outperforms self-consistency at matched token budgets on math and logic reasoning, and the gap grows with model scale.*
+
+Models: Qwen3-0.6B, Qwen3-1.7B, Qwen3-4B, Qwen3-8B, Qwen3-14B (same family, clean scale curve)
+Benchmarks: GSM8K, LogiQA
+EAR: zero-shot only — EAR-RL and DPO flywheel are future work
+
+### Infrastructure
+
+- [ ] Register `qwen3-1.7b` in `src/common/models/huggingface.py`
+- [ ] Register `qwen3-4b` in `src/common/models/huggingface.py`
+- [ ] Register `qwen3-8b` in `src/common/models/huggingface.py`
+- [ ] Add LogiQA dataset adapter in `src/common/datasets/logiqa.py`
+- [ ] Add MCQ letter extractor (A–D) in `src/common/parsing/`
+- [ ] Add MCQ reasoning prompt in `src/common/prompts/`
+- [ ] Add LogiQA configs: `configs/logiqa_single_cot.yaml`, `configs/logiqa_self_consistency.yaml`, `configs/logiqa_ear.yaml`
+
+### Experiments
+
+- [ ] Run full GSM8K sweep (SingleCoT, SC k∈{3,5,8}, EAR all 9 strategy×selector combos k∈{3,5} R∈{1,3}) on Qwen3-0.6B
+- [ ] Run full GSM8K sweep on Qwen3-1.7B
+- [ ] Run full GSM8K sweep on Qwen3-4B
+- [ ] Run full GSM8K sweep on Qwen3-8B
+- [ ] Run full LogiQA sweep on Qwen3-0.6B
+- [ ] Run full LogiQA sweep on Qwen3-1.7B
+- [ ] Run full LogiQA sweep on Qwen3-4B
+- [ ] Run full LogiQA sweep on Qwen3-8B
+
+### Analysis
+
+- [ ] Pareto frontier plot: accuracy vs total tokens per instance, one point per (method, config), both benchmarks
+- [ ] Scale curve: accuracy vs model size for best EAR config vs best SC config, both benchmarks
+- [ ] Ablation heatmap: strategy × selector accuracy grid at k=5, R=3 (GSM8K + LogiQA)
+- [ ] Token efficiency table: accuracy, tokens/instance, calls/instance, acc/kToken for all methods
+- [ ] Critique success rate breakdown by strategy and model size
+
+### Paper
+
+- [ ] Update benchmark table to GSM8K + LogiQA only (remove planned datasets)
+- [ ] Update model table to Qwen3-0.6B / 1.7B / 4B / 8B
+- [ ] Trim contributions list to EAR zero-shot only; move EAR-RL and DPO to future work
+- [ ] Fill in result tables once experiments complete
+- [ ] Insert generated plots into paper
+- [ ] Write analysis section based on actual results
+- [ ] Write conclusion
