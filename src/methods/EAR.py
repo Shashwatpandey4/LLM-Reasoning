@@ -47,7 +47,9 @@ class EAR(BaseReasoningMethod):
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _generate_candidate(self, question: str, candidate_id: int, choices=None, **kwargs: Any) -> Dict:
+    def _generate_candidate(
+        self, question: str, candidate_id: int, choices=None, **kwargs: Any
+    ) -> Dict:
         # prompt = self.prompt_template.format(question=question)
         if choices is not None:
             prompt = self.prompt_template.format(question=question, choices=choices)
@@ -118,7 +120,9 @@ class EAR(BaseReasoningMethod):
 
         # 1. Generate k initial candidates
         choices = instance.get("choices")
-        candidates = [self._generate_candidate(question, i, choices=choices, **kwargs) for i in range(self.k)]
+        candidates = [
+            self._generate_candidate(question, i, choices=choices, **kwargs) for i in range(self.k)
+        ]
 
         # Snapshot initial state before any in-place revisions
         initial_snapshot = [

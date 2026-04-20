@@ -66,17 +66,19 @@ def load_summaries(summaries_dir: str) -> list[dict]:
             elif method == "self_consistency":
                 label = f"SC (k={k})"
             elif method == "single_cot":
-                label = f"CoT (B={run.get('max_new_tokens','')})"
+                label = f"CoT (B={run.get('max_new_tokens', '')})"
 
-            records.append({
-                "model": model,
-                "model_size": MODEL_SIZES[model],
-                "method": method,
-                "dataset": dataset,
-                "accuracy": acc * 100,
-                "avg_total_tokens": tokens,
-                "label": label,
-            })
+            records.append(
+                {
+                    "model": model,
+                    "model_size": MODEL_SIZES[model],
+                    "method": method,
+                    "dataset": dataset,
+                    "accuracy": acc * 100,
+                    "avg_total_tokens": tokens,
+                    "label": label,
+                }
+            )
 
     return records
 
@@ -104,9 +106,7 @@ def plot_pareto(summaries_dir: str, output_dir: str):
     }
 
     for dataset in datasets:
-        fig, axes = plt.subplots(
-            1, len(models), figsize=(5 * len(models), 5), sharey=True
-        )
+        fig, axes = plt.subplots(1, len(models), figsize=(5 * len(models), 5), sharey=True)
         if len(models) == 1:
             axes = [axes]
 
@@ -127,7 +127,8 @@ def plot_pareto(summaries_dir: str, output_dir: str):
                 xs = [r["avg_total_tokens"] for r in pts]
                 ys = [r["accuracy"] for r in pts]
                 ax.scatter(
-                    xs, ys,
+                    xs,
+                    ys,
                     marker=method_markers[method],
                     color=color_map[method],
                     label=method_labels[method],
@@ -145,12 +146,17 @@ def plot_pareto(summaries_dir: str, output_dir: str):
 
         handles, labels = axes[0].get_legend_handles_labels()
         if handles:
-            fig.legend(handles, labels, loc="lower center", ncol=3, fontsize=10,
-                       bbox_to_anchor=(0.5, -0.08))
+            fig.legend(
+                handles,
+                labels,
+                loc="lower center",
+                ncol=3,
+                fontsize=10,
+                bbox_to_anchor=(0.5, -0.08),
+            )
 
         fig.suptitle(
-            f"Accuracy vs. Compute Pareto — {dataset.upper()}",
-            fontsize=13, fontweight="bold"
+            f"Accuracy vs. Compute Pareto — {dataset.upper()}", fontsize=13, fontweight="bold"
         )
         plt.tight_layout()
         out = os.path.join(output_dir, f"pareto_{dataset}.png")

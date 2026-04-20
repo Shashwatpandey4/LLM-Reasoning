@@ -124,7 +124,9 @@ def plot_scale_curve(summaries_dir: str, output_dir: str):
 
         ax.set_xlabel("Model Size (B parameters)", fontsize=13)
         ax.set_ylabel("Accuracy (%)", fontsize=13)
-        ax.set_title(f"Accuracy vs. Model Scale — {dataset.upper()}", fontsize=14, fontweight="bold")
+        ax.set_title(
+            f"Accuracy vs. Model Scale — {dataset.upper()}", fontsize=14, fontweight="bold"
+        )
         ax.set_xticks([MODEL_SIZES[m] for m in KNOWN_MODELS])
         ax.set_xticklabels([f"{MODEL_SIZES[m]}B" for m in KNOWN_MODELS])
         ax.legend(fontsize=11)

@@ -73,13 +73,15 @@ def load_ear_runs(summaries_dir: str, k: int, rounds: int) -> list[dict]:
                 continue
             if not run.get("allow_revision", True):
                 continue
-            records.append({
-                "model": model,
-                "dataset": dataset,
-                "strategy": run.get("critique_strategy"),
-                "selector": run.get("equilibrium_selector"),
-                "accuracy": run.get("accuracy", 0.0) * 100,
-            })
+            records.append(
+                {
+                    "model": model,
+                    "dataset": dataset,
+                    "strategy": run.get("critique_strategy"),
+                    "selector": run.get("equilibrium_selector"),
+                    "accuracy": run.get("accuracy", 0.0) * 100,
+                }
+            )
 
     return records
 
@@ -136,7 +138,8 @@ def plot_heatmap(summaries_dir: str, output_dir: str, k: int, rounds: int):
 
         fig.suptitle(
             f"EAR Ablation: Strategy × Selector — {dataset.upper()} (k={k}, R={rounds})",
-            fontsize=13, fontweight="bold"
+            fontsize=13,
+            fontweight="bold",
         )
         plt.tight_layout()
         out = os.path.join(output_dir, f"ear_heatmap_{dataset}_k{k}_r{rounds}.png")

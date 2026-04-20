@@ -188,5 +188,3 @@ def load_mixtral_8x7b(**kwargs) -> HuggingFaceModelWrapper:
     Class 5 representative. Requires device_map='auto' across multiple GPUs.
     """
     return HuggingFaceModelWrapper("mistralai/Mixtral-8x7B-Instruct-v0.1", **kwargs)
-
-

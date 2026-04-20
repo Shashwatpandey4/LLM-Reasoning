@@ -21,7 +21,6 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
