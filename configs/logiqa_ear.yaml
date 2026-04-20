@@ -1,0 +1,37 @@
+# LogiQA EAR sweep — full grid over all design axes
+# Run with: uv run python benchmarks/run_experiment.py --config configs/logiqa_ear.yaml
+#
+# Every list-valued parameter under `method:` becomes a sweep dimension.
+# The runner builds the Cartesian product automatically.
+# Total runs = product of all list lengths.
+#
+# This default config sweeps 3 critique strategies × 3 selectors × 2 revision settings
+# × 2 k values × 2 round values = 72 runs. Reduce lists for faster iteration.
+
+experiment:
+  name: logiqa_qwen3-0.6b_ear
+  base_dir: results
+
+dataset:
+  name: logiqa
+  split: test
+  num_examples: 0          # 0 = full split
+
+model:
+  name: qwen3-0.6b         # default model; can be overridden via CLI
+  temperature: 0.7
+
+method:
+  name: ear
+  k: [3, 5]                          # number of initial candidates
+  rounds: [1, 3]                     # max critique rounds per instance
+  critique_strategy:                 # strategies to sweep
+    - answer_level
+    - reasoning_level
+    - panel
+  equilibrium_selector:              # selectors to sweep
+    - elo
+    - nash
+    - survival
+  allow_revision: [true, false]      # with and without revision
+  max_new_tokens: 512                # token budget per model call (scalar = fixed)
