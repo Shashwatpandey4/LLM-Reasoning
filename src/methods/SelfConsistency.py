@@ -28,7 +28,12 @@ class SelfConsistency(BaseReasoningMethod):
         candidates: List[Dict[str, Any]] = []
 
         for i in range(self.k):
-            prompt = self.prompt_template.format(question=question)
+            choices = instance.get("choices")
+            if choices is not None:
+                prompt = self.prompt_template.format(question=question, choices=choices)
+            else:
+                prompt = self.prompt_template.format(question=question)
+
             generation = self.model.generate(prompt, **kwargs)
             extracted_answer, answer_start_idx = self.parser.parse(generation)
             reasoning_text = generation[:answer_start_idx]
@@ -37,6 +42,7 @@ class SelfConsistency(BaseReasoningMethod):
             candidates.append(
                 {
                     "id": i,
+                    "prompt": prompt,
                     "raw_generation": generation,
                     "reasoning_text": reasoning_text,
                     "answer_text": answer_text,

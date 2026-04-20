@@ -47,14 +47,19 @@ class EAR(BaseReasoningMethod):
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _generate_candidate(self, question: str, candidate_id: int, **kwargs: Any) -> Dict:
-        prompt = self.prompt_template.format(question=question)
+    def _generate_candidate(self, question: str, candidate_id: int, choices=None, **kwargs: Any) -> Dict:
+        # prompt = self.prompt_template.format(question=question)
+        if choices is not None:
+            prompt = self.prompt_template.format(question=question, choices=choices)
+        else:
+            prompt = self.prompt_template.format(question=question)
         generation = self.model.generate(prompt, **kwargs)
         extracted_answer, answer_start = self.parser.parse(generation)
         reasoning_text = generation[:answer_start]
         answer_text = generation[answer_start:]
         return {
             "id": candidate_id,
+            "prompt": prompt,
             "raw_generation": generation,
             "reasoning_text": reasoning_text,
             "answer_text": answer_text,
@@ -112,7 +117,8 @@ class EAR(BaseReasoningMethod):
             raise ValueError("Instance must contain a 'question' key.")
 
         # 1. Generate k initial candidates
-        candidates = [self._generate_candidate(question, i, **kwargs) for i in range(self.k)]
+        choices = instance.get("choices")
+        candidates = [self._generate_candidate(question, i, choices=choices, **kwargs) for i in range(self.k)]
 
         # Snapshot initial state before any in-place revisions
         initial_snapshot = [
