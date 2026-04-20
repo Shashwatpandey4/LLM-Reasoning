@@ -5,7 +5,9 @@ model size (in billions of parameters) for each method family.
 
 Usage:
     uv run python benchmarks/plot_scale_curve.py
-    uv run python benchmarks/plot_scale_curve.py --summaries_dir results/summaries --output_dir results/plots
+    uv run python benchmarks/plot_scale_curve.py \
+        --summaries_dir results/summaries \
+            --output_dir results/plots
 """
 
 import argparse

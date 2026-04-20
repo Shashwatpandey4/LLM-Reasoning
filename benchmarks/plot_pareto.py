@@ -4,7 +4,9 @@ One point per (method, config) combination. Upper-left dominates.
 
 Usage:
     uv run python benchmarks/plot_pareto.py
-    uv run python benchmarks/plot_pareto.py --summaries_dir results/summaries --output_dir results/plots
+    uv run python benchmarks/plot_pareto.py \
+        --summaries_dir results/summaries \
+            --output_dir results/plots
 """
 
 import argparse
