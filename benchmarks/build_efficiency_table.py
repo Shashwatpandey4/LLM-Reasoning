@@ -1,145 +1,210 @@
-"""Token efficiency table: accuracy vs compute across all methods.
+"""Build token-efficiency markdown tables from summary JSONs.
 
-Reads all summary JSONs and prints a markdown table per dataset with columns:
-  Method | Model | Acc (%) | Tok/inst | Calls/inst | Acc/kTok
+Reads aggregate summary files from results/summaries/ and prints one markdown
+table per benchmark (e.g. GSM8K, LogiQA).
+
+Columns:
+    Method (config) | Model | Acc (%) | Tok/inst | Calls/inst | Acc/kTok
 
 Usage:
-    uv run python benchmarks/build_efficiency_table.py
-    uv run python benchmarks/build_efficiency_table.py --summaries_dir results/summaries
+    python benchmarks/build_efficiency_table.py
+    python benchmarks/build_efficiency_table.py --summaries_dir results/summaries
 """
+
+from __future__ import annotations
 
 import argparse
 import json
 import os
+import re
 import sys
-from collections import defaultdict
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-MODEL_SIZES = {
-    "qwen3-0.6b": 0.6,
-    "qwen3-1.7b": 1.7,
-    "qwen3-4b": 4.0,
-    "qwen3-8b": 8.0,
-    "qwen3-14b": 14.0,
-}
 
-KNOWN_MODELS = list(MODEL_SIZES.keys())
-
-
-def extract_model(experiment_name: str) -> str | None:
-    for m in KNOWN_MODELS:
-        if m in experiment_name:
-            return m
-    return None
+def _safe_read_json(path: Path) -> Optional[Dict[str, Any]]:
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Skipping {path.name}: failed to read JSON ({e})", file=sys.stderr)
+        return None
 
 
-def method_label(method: str, run: dict) -> str:
+def _infer_model(experiment_name: str) -> str:
+    """
+    Extract model name from experiment_name.
+
+    Works for names like:
+      gsm8k_qwen3-0.6b_single-cot
+      logiqa_qwen3-8b_ear
+      gsm8k_llama-3.1-8b_self-consistency
+      xyz_gemma-3-27b-it_aggregate
+    """
+    if not experiment_name:
+        return "unknown"
+
+    model_patterns = [
+        r"(qwen3-\d+(?:\.\d+)?b)",
+        r"(llama-\d+(?:\.\d+)?-\d+b)",
+        r"(gemma-\d+-\d+b-it)",
+        r"(phi-\d+(?:\.\d+)?-[a-z0-9.-]+)",
+        r"(deepseek-r1-distill-\d+b)",
+        r"(mixtral-\d+x\d+b)",
+    ]
+
+    for pattern in model_patterns:
+        match = re.search(pattern, experiment_name)
+        if match:
+            return match.group(1)
+
+    # fallback: try to recover some model-ish token
+    for part in experiment_name.split("_"):
+        if "-" in part and any(ch.isdigit() for ch in part):
+            return part
+
+    return "unknown"
+
+
+def _format_method_config(method: str, run: Dict[str, Any]) -> str:
     if method == "single_cot":
-        return f"SingleCoT (B={run.get('max_new_tokens', '?')})"
+        budget = run.get("budget", run.get("max_new_tokens", "?"))
+        return f"SingleCoT (B={budget})"
+
     if method == "self_consistency":
-        return f"SC (k={run.get('k', '?')})"
-    if method == "ear":
-        s = run.get("critique_strategy", "?")[:3]
-        sel = run.get("equilibrium_selector", "?")[:3]
         k = run.get("k", "?")
-        r = run.get("rounds", "?")
-        rev = "rev" if run.get("allow_revision") else "norev"
-        return f"EAR ({s}/{sel}, k={k}, R={r}, {rev})"
+        budget = run.get("max_new_tokens", "?")
+        return f"SelfConsistency (k={k}, B={budget})"
+
+    if method == "ear":
+        k = run.get("k", "?")
+        rounds = run.get("rounds", "?")
+        critique = run.get("critique_strategy", "?")
+        selector = run.get("equilibrium_selector", "?")
+        allow_revision = run.get("allow_revision", False)
+        rev = "rev" if allow_revision else "norev"
+        return f"EAR ({critique}, {selector}, k={k}, R={rounds}, {rev})"
+
     return method
 
 
-def load_summaries(summaries_dir: str) -> list[dict]:
-    records = []
-    for fname in os.listdir(summaries_dir):
-        if not fname.endswith("_metrics.json"):
+def _flatten_summary(summary: Dict[str, Any]) -> List[Dict[str, Any]]:
+    dataset = summary.get("dataset", "unknown")
+    benchmark = str(dataset).upper()
+    experiment_name = summary.get("experiment_name", "")
+    model = _infer_model(experiment_name)
+    method = summary.get("method", "unknown")
+    runs = summary.get("runs", [])
+
+    rows: List[Dict[str, Any]] = []
+
+    if not isinstance(runs, list):
+        return rows
+
+    for run in runs:
+        if not isinstance(run, dict):
             continue
-        path = os.path.join(summaries_dir, fname)
-        with open(path) as f:
-            data = json.load(f)
 
-        model = extract_model(data.get("experiment_name", ""))
-        if model is None:
-            continue
+        accuracy = float(run.get("accuracy", 0.0))
+        avg_tokens = float(run.get("avg_total_tokens", 0.0))
+        avg_calls = float(run.get("avg_model_calls", 0.0))
 
-        method = data.get("method", "unknown")
-        dataset = data.get("dataset", "unknown")
+        acc_percent = accuracy * 100.0
+        acc_per_ktok = (acc_percent / avg_tokens * 1000.0) if avg_tokens > 0 else 0.0
 
-        for run in data.get("runs", []):
-            acc = run.get("accuracy", 0.0)
-            tokens = run.get("avg_total_tokens", 0.0)
-            calls = run.get("avg_model_calls", 0.0)
-            acc_ktok = (acc / tokens * 1000) if tokens > 0 else 0.0
-
-            records.append({
+        rows.append(
+            {
+                "benchmark": benchmark,
                 "dataset": dataset,
                 "model": model,
-                "model_size": MODEL_SIZES[model],
                 "method": method,
-                "method_label": method_label(method, run),
-                "accuracy": acc * 100,
-                "avg_total_tokens": tokens,
-                "avg_model_calls": calls,
-                "acc_per_ktok": acc_ktok * 100,
-            })
+                "method_config": _format_method_config(method, run),
+                "accuracy_percent": acc_percent,
+                "avg_tokens": avg_tokens,
+                "avg_calls": avg_calls,
+                "acc_per_ktok": acc_per_ktok,
+            }
+        )
 
-    return records
+    return rows
 
 
-def best_per_family(records: list[dict], dataset: str) -> list[dict]:
-    """For each (model, method_family), keep the best-accuracy config."""
-    by_key = defaultdict(list)
-    for r in records:
-        if r["dataset"] != dataset:
+def load_all_rows(summaries_dir: str) -> List[Dict[str, Any]]:
+    summaries_path = Path(summaries_dir)
+    if not summaries_path.exists():
+        print(f"Directory not found: {summaries_dir}", file=sys.stderr)
+        return []
+
+    rows: List[Dict[str, Any]] = []
+
+    # Read all JSON files so partial/incremental outputs still work
+    for path in sorted(summaries_path.glob("*.json")):
+        summary = _safe_read_json(path)
+        if summary is None:
             continue
-        key = (r["model"], r["method"])
-        by_key[key].append(r)
+        rows.extend(_flatten_summary(summary))
 
-    best = []
-    for runs in by_key.values():
-        best.append(max(runs, key=lambda x: x["accuracy"]))
-
-    return sorted(best, key=lambda x: (x["model_size"], x["method"]))
+    return rows
 
 
-def print_table(records: list[dict], dataset: str):
-    rows = best_per_family(records, dataset)
+def _sort_key(row: Dict[str, Any]):
+    return (
+        row["benchmark"],
+        row["model"],
+        row["method"],
+        row["method_config"],
+    )
+
+
+def print_markdown_table(benchmark: str, rows: List[Dict[str, Any]]) -> None:
+    print(f"\n### {benchmark}\n")
+
     if not rows:
-        print(f"No data for {dataset}.\n")
+        print("No results available.\n")
         return
 
-    print(f"\n### {dataset.upper()}\n")
-    header = f"| {'Method':<45} | {'Model':<14} | {'Acc (%)':<9} | {'Tok/inst':<10} | {'Calls':<7} | {'Acc/kTok':<9} |"
-    sep    = f"|{'-'*47}|{'-'*16}|{'-'*11}|{'-'*12}|{'-'*9}|{'-'*11}|"
-    print(header)
-    print(sep)
+    rows = sorted(rows, key=_sort_key)
 
-    prev_model = None
-    for r in rows:
-        if prev_model and r["model"] != prev_model:
-            print(sep)
+    print("| Method (config) | Model | Acc (%) | Tok/inst | Calls/inst | Acc/kTok |")
+    print("|---|---:|---:|---:|---:|---:|")
+
+    for row in rows:
         print(
-            f"| {r['method_label']:<45} "
-            f"| {r['model']:<14} "
-            f"| {r['accuracy']:>7.1f}  "
-            f"| {r['avg_total_tokens']:>8.0f}   "
-            f"| {r['avg_model_calls']:>5.1f}   "
-            f"| {r['acc_per_ktok']:>7.3f}    |"
+            f"| {row['method_config']} "
+            f"| {row['model']} "
+            f"| {row['accuracy_percent']:.2f} "
+            f"| {row['avg_tokens']:.2f} "
+            f"| {row['avg_calls']:.2f} "
+            f"| {row['acc_per_ktok']:.3f} |"
         )
-        prev_model = r["model"]
     print()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--summaries_dir", default="results/summaries")
+def main():
+    parser = argparse.ArgumentParser(
+        description="Build markdown token-efficiency tables from experiment summaries."
+    )
+    parser.add_argument(
+        "--summaries_dir",
+        default="results/summaries",
+        help="Directory containing summary JSON files.",
+    )
     args = parser.parse_args()
 
-    records = load_summaries(args.summaries_dir)
-    if not records:
-        print("No matching summary files found.")
-        sys.exit(0)
+    rows = load_all_rows(args.summaries_dir)
 
-    datasets = sorted(set(r["dataset"] for r in records))
-    for dataset in datasets:
-        print_table(records, dataset)
+    if not rows:
+        print("No summary rows found.")
+        return
+
+    benchmarks = sorted({row["benchmark"] for row in rows})
+
+    for benchmark in benchmarks:
+        benchmark_rows = [row for row in rows if row["benchmark"] == benchmark]
+        print_markdown_table(benchmark, benchmark_rows)
+
+
+if __name__ == "__main__":
+    main()

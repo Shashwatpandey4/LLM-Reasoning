@@ -1,0 +1,19 @@
+# LogiQA SingleCoT budget sweep
+# Run with: uv run python benchmarks/run_experiment.py --config configs/logiqa_single_cot.yaml
+
+experiment:
+  name: logiqa_qwen3-0.6b_single-cot
+  base_dir: results
+
+dataset:
+  name: logiqa
+  split: test
+  num_examples: 0        # 0 = full split
+
+model:
+  name: qwen3-0.6b    # default model; can be overridden via CLI
+  temperature: 0.0
+
+method:
+  name: single_cot
+  max_new_tokens: [8, 16, 32, 64, 128, 256, 512, 1000]  # list → sweep

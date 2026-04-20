@@ -1,0 +1,20 @@
+# LogiQA Self-Consistency k sweep
+# Run with: uv run python benchmarks/run_experiment.py --config configs/logiqa_self_consistency.yaml
+
+experiment:
+  name: logiqa_qwen3-0.6b_self-consistency
+  base_dir: results
+
+dataset:
+  name: logiqa
+  split: test
+  num_examples: 0        # 0 = full split
+
+model:
+  name: qwen3-0.6b       # default model; can be overridden via CLI
+  temperature: 0.7       # >0 required for diverse samples
+
+method:
+  name: self_consistency
+  k: [3, 5, 8, 16]       # list → sweep over number of sampled paths
+  max_new_tokens: 512    # token budget per candidate generation

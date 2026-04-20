@@ -20,7 +20,11 @@ class SingleCoT(BaseReasoningMethod):
             raise ValueError("Instance must contain a 'question' key.")
 
         # 1. Format the prompt
-        prompt = self.prompt_template.format(question=question)
+        choices = instance.get("choices")
+        if choices is not None:
+            prompt = self.prompt_template.format(question=question, choices=choices)
+        else:
+            prompt = self.prompt_template.format(question=question)
 
         # 2. Run generation
         generation_output = self.model.generate(prompt, **kwargs)
@@ -42,6 +46,7 @@ class SingleCoT(BaseReasoningMethod):
             "dataset": instance.get("dataset"),
             "split": instance.get("split"),
             "question": question,
+            "prompt": prompt,
             "raw_generation": generation_output,
             "reasoning_text": reasoning_text,
             "answer_text": answer_text,

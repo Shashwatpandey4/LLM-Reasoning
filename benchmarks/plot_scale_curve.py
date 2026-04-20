@@ -5,7 +5,9 @@ model size (in billions of parameters) for each method family.
 
 Usage:
     uv run python benchmarks/plot_scale_curve.py
-    uv run python benchmarks/plot_scale_curve.py --summaries_dir results/summaries --output_dir results/plots
+    uv run python benchmarks/plot_scale_curve.py \
+        --summaries_dir results/summaries \
+            --output_dir results/plots
 """
 
 import argparse
@@ -124,7 +126,9 @@ def plot_scale_curve(summaries_dir: str, output_dir: str):
 
         ax.set_xlabel("Model Size (B parameters)", fontsize=13)
         ax.set_ylabel("Accuracy (%)", fontsize=13)
-        ax.set_title(f"Accuracy vs. Model Scale — {dataset.upper()}", fontsize=14, fontweight="bold")
+        ax.set_title(
+            f"Accuracy vs. Model Scale — {dataset.upper()}", fontsize=14, fontweight="bold"
+        )
         ax.set_xticks([MODEL_SIZES[m] for m in KNOWN_MODELS])
         ax.set_xticklabels([f"{MODEL_SIZES[m]}B" for m in KNOWN_MODELS])
         ax.legend(fontsize=11)
