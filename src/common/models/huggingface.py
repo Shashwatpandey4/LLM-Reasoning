@@ -104,26 +104,31 @@ def load_gemma_3_1b_it(**kwargs) -> HuggingFaceModelWrapper:
     return HuggingFaceModelWrapper("google/gemma-3-1b-it", **kwargs)
 
 
+# registering the qwen3-0.6b model
 @MODELS.register("qwen3-0.6b")
 def load_qwen3_0_6b(**kwargs) -> HuggingFaceModelWrapper:
     return HuggingFaceModelWrapper("Qwen/Qwen3-0.6B", system_prompt="/no_think", **kwargs)
 
 
+# registering the qwen3-1.7b model
 @MODELS.register("qwen3-1.7b")
 def load_qwen3_1_7b(**kwargs) -> HuggingFaceModelWrapper:
     return HuggingFaceModelWrapper("Qwen/Qwen3-1.7B", system_prompt="/no_think", **kwargs)
 
 
+# registering the qwen3-4b model
 @MODELS.register("qwen3-4b")
 def load_qwen3_4b(**kwargs) -> HuggingFaceModelWrapper:
     return HuggingFaceModelWrapper("Qwen/Qwen3-4B", system_prompt="/no_think", **kwargs)
 
 
+# registering the qwen3-8b model
 @MODELS.register("qwen3-8b")
 def load_qwen3_8b(**kwargs) -> HuggingFaceModelWrapper:
     return HuggingFaceModelWrapper("Qwen/Qwen3-8B", system_prompt="/no_think", **kwargs)
 
 
+# registering the qwen3-14b model
 @MODELS.register("qwen3-14b")
 def load_qwen3_14b(**kwargs) -> HuggingFaceModelWrapper:
     return HuggingFaceModelWrapper("Qwen/Qwen3-14B", system_prompt="/no_think", **kwargs)
