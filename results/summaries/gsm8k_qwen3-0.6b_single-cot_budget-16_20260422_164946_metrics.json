@@ -1,0 +1,10 @@
+{
+    "num_examples": 1319,
+    "accuracy": 0.00530705079605762,
+    "parse_success_rate": 0.310841546626232,
+    "avg_total_tokens": 16.0,
+    "avg_reasoning_tokens": 14.730098559514785,
+    "avg_answer_tokens": 1.3153904473085671,
+    "budget": 16,
+    "raw_path": "results/raw/gsm8k_qwen3-0.6b_single-cot_budget-16_20260422_164946.jsonl"
+}

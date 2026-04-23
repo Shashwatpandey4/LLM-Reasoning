@@ -30,9 +30,9 @@ dist/
 .vscode/
 
 # Local experiment outputs
-results/raw/
-results/summaries/
-results/plots/
+# results/raw/
+# results/summaries/
+# results/plots/
 
 # Not tracked in version control
 memory/
