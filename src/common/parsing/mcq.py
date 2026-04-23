@@ -4,24 +4,26 @@ from src.registry import PARSERS
 
 
 class MCQParser:
-    def parse(self, text: str) -> str | None:
+    def parse(self, text: str) -> tuple[str | None, int]:
         match = re.search(r"the answer is\s*\(([ABCD])\)", text, re.IGNORECASE)
         if match:
-            return match.group(1).upper()
+            return match.group(1).upper(), match.start()
 
         match = re.search(r"the answer is\s+([ABCD])\b", text, re.IGNORECASE)
         if match:
-            return match.group(1).upper()
+            return match.group(1).upper(), match.start()
 
         matches = list(re.finditer(r"\b([ABCD])\b", text))
         if matches:
-            return matches[-1].group(1).upper()
+            last = matches[-1]
+            return last.group(1).upper(), last.start()
 
-        return None
+        return None, len(text)
 
 
 def extract_mcq_answer(text: str) -> str | None:
-    return MCQParser().parse(text)
+    answer, _ = MCQParser().parse(text)
+    return answer
 
 
 @PARSERS.register("mcq")

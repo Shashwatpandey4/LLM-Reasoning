@@ -35,6 +35,7 @@ def _normalize_instances(
                 "question": instance["question"],
                 "answer": instance.get("answer"),
                 "raw_answer": instance.get("raw_answer"),
+                "choices": instance.get("choices"),
             }
         )
     return normalized

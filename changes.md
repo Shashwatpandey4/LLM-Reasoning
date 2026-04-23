@@ -1,0 +1,1 @@
+- `src/experiments/gsm8k_single_cot_sweep.py`: KeyError: 'choices' — added `"choices": instance.get("choices")` to `_normalize_instances`
