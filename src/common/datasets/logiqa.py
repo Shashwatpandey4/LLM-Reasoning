@@ -4,7 +4,6 @@ from datasets import load_dataset
 
 from src.registry import DATASETS
 
-
 LETTERS = ["A", "B", "C", "D"]
 
 
@@ -16,7 +15,9 @@ class LogiQADataset:
         print(f"Loading LogiQA dataset ({split} split)...")
         self.dataset = load_dataset(
             "parquet",
-            data_files={split: f"hf://datasets/lucasmccabe/logiqa@refs/convert/parquet/default/{split}/*.parquet"},
+            data_files={
+                split: f"hf://datasets/lucasmccabe/logiqa@refs/convert/parquet/default/{split}/*.parquet"
+            },
             split=split,
         )
         print(f"Loaded {len(self.dataset)} examples.")
