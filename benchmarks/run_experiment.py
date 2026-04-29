@@ -20,9 +20,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Side-effect imports: register all components into global registries
 import src.common.datasets.gsm8k  # noqa: F401
+import src.common.datasets.logiqa  # noqa: F401
 import src.common.models.huggingface  # noqa: F401
 import src.common.parsing.gsm8k  # noqa: F401
+import src.common.parsing.mcq  # noqa: F401
 import src.common.prompts.gsm8k_cot  # noqa: F401
+import src.common.prompts.mcq_cot  # noqa: F401
 from src.registry import DATASETS, MODELS, PARSERS, PROMPTS
 
 
@@ -31,12 +34,16 @@ def load_config(path: str) -> dict:
         return yaml.safe_load(f)
 
 
+_PROMPT_KEY_OVERRIDES = {"logiqa": "mcq_cot"}
+_PARSER_KEY_OVERRIDES = {"logiqa": "mcq"}
+
+
 def _prompt_key(dataset: str) -> str:
-    return f"{dataset}_cot"
+    return _PROMPT_KEY_OVERRIDES.get(dataset, f"{dataset}_cot")
 
 
 def _parser_key(dataset: str) -> str:
-    return f"{dataset}_parser"
+    return _PARSER_KEY_OVERRIDES.get(dataset, f"{dataset}_parser")
 
 
 def _run_single_cot(config: dict, instances: list, prompt_template, parser, model_name: str):
