@@ -1,0 +1,10 @@
+{
+    "num_examples": 651,
+    "accuracy": 0.009216589861751152,
+    "parse_success_rate": 0.027649769585253458,
+    "avg_total_tokens": 31.998463901689707,
+    "avg_reasoning_tokens": 31.804915514592935,
+    "avg_answer_tokens": 0.21505376344086022,
+    "budget": 32,
+    "raw_path": "results/raw/logiqa_qwen3-0.6b_single-cot_budget-32_20260423_154742.jsonl"
+}
