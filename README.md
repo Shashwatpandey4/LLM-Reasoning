@@ -222,6 +222,10 @@ uv run python benchmarks/compare_methods.py \
 |---|---|
 | `gemma-3-1b-it` | `google/gemma-3-1b-it` (gated) |
 | `qwen3-0.6b` | `Qwen/Qwen3-0.6B` |
+| `qwen3-1.7b` | `Qwen/Qwen3-1.7B` |
+| `qwen3-4b` | `Qwen/Qwen3-4B` |
+| `qwen3-8b` | `Qwen/Qwen3-8B` |
+| `qwen3-14b` | `Qwen/Qwen3-14B` |
 
 To add a new model, register it in `src/common/models/huggingface.py`:
 
@@ -374,9 +378,9 @@ EAR: zero-shot only — EAR-RL and DPO flywheel are future work
 
 ### Infrastructure
 
-- [ ] Register `qwen3-1.7b` in `src/common/models/huggingface.py`
-- [ ] Register `qwen3-4b` in `src/common/models/huggingface.py`
-- [ ] Register `qwen3-8b` in `src/common/models/huggingface.py`
+- [x] Register `qwen3-1.7b` in `src/common/models/huggingface.py`
+- [x] Register `qwen3-4b` in `src/common/models/huggingface.py`
+- [x] Register `qwen3-8b` in `src/common/models/huggingface.py`
 - [ ] Add LogiQA dataset adapter in `src/common/datasets/logiqa.py`
 - [ ] Add MCQ letter extractor (A–D) in `src/common/parsing/`
 - [ ] Add MCQ reasoning prompt in `src/common/prompts/`

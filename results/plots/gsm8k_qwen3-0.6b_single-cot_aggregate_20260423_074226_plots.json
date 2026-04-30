@@ -1,0 +1,5 @@
+{
+    "accuracy": "results/plots/gsm8k_qwen3-0.6b_single-cot_aggregate_20260423_074226_accuracy.png",
+    "avg_reasoning_tokens": "results/plots/gsm8k_qwen3-0.6b_single-cot_aggregate_20260423_074226_avg_reasoning_tokens.png",
+    "parse_success_rate": "results/plots/gsm8k_qwen3-0.6b_single-cot_aggregate_20260423_074226_parse_success_rate.png"
+}
