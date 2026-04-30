@@ -1,10 +1,10 @@
 {
-    "num_examples": 651,
+    "num_examples": 200,
     "accuracy": 0.0,
     "parse_success_rate": 0.0,
     "avg_total_tokens": 8.0,
     "avg_reasoning_tokens": 8.0,
     "avg_answer_tokens": 0.0,
     "budget": 8,
-    "raw_path": "results/raw/logiqa_qwen3-0.6b_single-cot_budget-8_20260423_153813.jsonl"
+    "raw_path": "results/raw/logiqa_qwen3-4b_single-cot_budget-8_20260430_111815.jsonl"
 }
